@@ -4,26 +4,24 @@ using UnityEngine;
 
 public class Buttons : MonoBehaviour
 {
-    [SerializeField] Animator animator = null;
-
     LeagueTable leagueTable;
+    Animator animator;
 
-    private void Start()
+    private void Awake()
     {
-        leagueTable = animator.gameObject.GetComponent<LeagueTable>();
+        leagueTable = FindObjectOfType<LeagueTable>();
+        animator = leagueTable.gameObject.GetComponent<Animator>();
     }
 
     public void CloseButton()
     {
-        animator.SetBool("isClosed", true);
-        animator.SetBool("isPushed", false);
+        animator.SetTrigger("Close");
         leagueTable.SaveData();
     }
 
     public void PushButton()
     {
-        animator.SetBool("isClosed", false);
-        animator.SetBool("isPushed", true);
+        animator.SetTrigger("Push");
         leagueTable.LoadData();
     }
 }

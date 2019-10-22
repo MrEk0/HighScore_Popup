@@ -11,14 +11,16 @@ public class LeagueTable : MonoBehaviour
     [SerializeField] int placeForPlayer = 2;
     [SerializeField] float defaultOffset = 70f;
     [SerializeField] GameObject playerResultPrefab = null;
-    [SerializeField] GameObject currentPlayerResult = null;
     [SerializeField] GameObject emphasizedPlayerResult = null;
     [SerializeField] Transform defaultPosition = null;
     [SerializeField] RectTransform playerResStartPos = null;
 
-    private List<PlayerData> playerDataList=new List<PlayerData>();
+    private const string DATAFILEPATH = "data.json";
 
+    private List<PlayerData> playerDataList=new List<PlayerData>();
     private List<GameObject> listOfResults=new List<GameObject>();
+
+    private ScrollContent scrollContent;
 
     private void Awake()
     {
@@ -36,21 +38,31 @@ public class LeagueTable : MonoBehaviour
         AddPlayerResult(8065, "Walen", "Gold");
         AddPlayerResult(9614, "Vin", "Diesel");
         AddPlayerResult(10354, "Frank", "Gogo");
+
+        scrollContent = playerResStartPos.GetComponent<ScrollContent>();
     }
 
     public void LoadData()
     {
-        var dataFile = Directory.GetFiles(Application.dataPath, "*.json");
-        var levelPlayerData = File.ReadAllText(dataFile[0]);
-        Highscores highscore = JsonUtility.FromJson<Highscores>(levelPlayerData);
-        playerDataList = highscore.playerData;
-        placeForPlayer = highscore.playerPlace;
-        numberOfPlayersToShow = highscore.playersToShow;
+        string filePath = Path.Combine( Application.dataPath, DATAFILEPATH);
+
+        if(File.Exists(filePath))
+        {
+            string playerDataAsJson = File.ReadAllText(filePath);
+            Highscores highscore = JsonUtility.FromJson<Highscores>(playerDataAsJson);
+            playerDataList = highscore.playerData;
+            placeForPlayer = highscore.playerPlace;
+            numberOfPlayersToShow = highscore.playersToShow;
+        }
+        else
+        {
+            throw new FileNotFoundException();
+        }
 
         SortData();
         CreateLeagueTable(playerDataList);
 
-        playerResStartPos.GetComponent<ScrollContent>().SetContentHigh(playerResultPrefab, defaultOffset);
+        scrollContent.SetContentHigh(playerResultPrefab, defaultOffset);
     }
 
     public void SaveData()
@@ -60,7 +72,7 @@ public class LeagueTable : MonoBehaviour
             playersToShow =numberOfPlayersToShow };
 
         string playersDataToJson = JsonUtility.ToJson(highScore);
-        var savePath = Path.Combine(Application.dataPath, "data.json");
+        string savePath = Path.Combine(Application.dataPath, DATAFILEPATH);
 
         File.WriteAllText(savePath, playersDataToJson);
     }
@@ -69,7 +81,7 @@ public class LeagueTable : MonoBehaviour
     {
         for (int i = 0; i < playerDataList.Count; i++)
         {
-            for (int j = i + 1; j <= playerDataList.Count - 1; j++)
+            for (int j = i + 1; j < playerDataList.Count; j++)
             {
                 if (playerDataList[i].points < playerDataList[j].points)
                 {
@@ -88,7 +100,7 @@ public class LeagueTable : MonoBehaviour
             numberOfPlayersToShow = playerData.Count;
         }
 
-        InstantiateResult(currentPlayerResult, defaultPosition, playerData, placeForPlayer - 1, 0);   
+        InstantiateResult(emphasizedPlayerResult, defaultPosition, playerData, placeForPlayer - 1, 0);   
 
         for (int i = 0; i < numberOfPlayersToShow; i++)
         {
@@ -104,18 +116,19 @@ public class LeagueTable : MonoBehaviour
 
     }
 
-    private void InstantiateResult(GameObject prefabToInst, Transform startPos, List<PlayerData> playerOptions, int place,
-         int chainMultiplier)
+    private void InstantiateResult(GameObject prefabToInst, Transform startPoint, List<PlayerData> playerData, int place,
+         int placeInChain)
     {
-        GameObject playerResult = Instantiate(prefabToInst, startPos);
-        listOfResults.Add(playerResult);
-        playerResult.GetComponent<PlayerResult>().SetupResult(place,
-            playerOptions[place].name,
-            playerOptions[place].lastName,
-            playerOptions[place].points);
+        Vector3 startPosition = new Vector3(startPoint.position.x, startPoint.position.y-defaultOffset * placeInChain);
 
-        RectTransform playerRectTransform = playerResult.GetComponent<RectTransform>();
-        playerRectTransform.anchoredPosition = new Vector2(0, - defaultOffset * chainMultiplier);
+        GameObject playerResult = Instantiate(prefabToInst, startPosition, Quaternion.identity, startPoint);
+
+        listOfResults.Add(playerResult);
+
+        playerResult.GetComponent<PlayerResult>().SetupResult(place,
+            playerData[place].name,
+            playerData[place].lastName,
+            playerData[place].points);
     }
 
 

@@ -43,4 +43,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2626684369d9bb34fbf389840f5dcac7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 0}
+  highScorePanel: {fileID: 7462770346337072526, guid: 7f6b79c4394891a41b12373045aecb97,
+    type: 3}

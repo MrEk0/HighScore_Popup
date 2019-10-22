@@ -9,6 +9,7 @@ public class ScrollContent : MonoBehaviour
 
     float defaultBorder;
     int resultCount=0;
+    int defaultNumberOfPlayers = 5;
 
     private void Awake()
     {
@@ -25,7 +26,7 @@ public class ScrollContent : MonoBehaviour
         GameObject playerPanel = resultPrefab.GetComponentInChildren<Image>().gameObject;
         float height = playerPanel.GetComponent<RectTransform>().rect.height;
 
-        if (resultCount > 5)
+        if (resultCount > defaultNumberOfPlayers)
         {
             contentRect.sizeDelta = new Vector2(0, height+(resultCount-1) * offset);
         }
